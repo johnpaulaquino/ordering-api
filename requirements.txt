@@ -1,0 +1,10 @@
+fastapi[standard]
+pydantic-settings
+alembic
+sqlmodel
+asyncmy
+passlib[bcrypt]
+bcrypt==3.2.2
+python-jose[cryptography]
+python-dotenv
+requests
