@@ -12,7 +12,7 @@ from app.src.dependencies.auth_dependency import AuthDependency
 class CartsServices:
 
      @staticmethod
-     async def insert_cart(cart: CreateCarts,current_user = Depends(AuthDependency.get_current_user)):
+     async def insert_cart(cart: CreateCarts, current_user=Depends(AuthDependency.get_current_user)):
           try:
                customer_id = current_user.id
                total_price = cart.price * cart.quantity
@@ -22,7 +22,8 @@ class CartsServices:
                                  product_id=cart.product_id,
                                  total_price=total_price)
 
-               await CartsRepository.insert_carts(new_carts)
+               validated_data = jsonable_encoder(new_carts.model_dump())
+               await CartsRepository.insert_carts(validated_data)
                return JSONResponse(
                        status_code=status.HTTP_201_CREATED,
                        content={'status': 'ok', 'message': 'Successfully Created!'},
@@ -47,11 +48,14 @@ class CartsServices:
                     return JSONResponse(
                             status_code=status.HTTP_200_OK,
                             content={'status': 'ok', 'message': 'No Carts found',
-                                     'data'  : customer_carts}, )
+                                     'data'  : customer_carts, 'total_items': 0})
+
+               total_items = await CartsRepository.get_total_items_in_carts(customer_id)
                return JSONResponse(
                        status_code=status.HTTP_200_OK,
-                       content={'status': 'ok', 'message': 'Successfully retrieved',
-                                'data'  : jsonable_encoder(customer_carts)})
+                       content={'status'     : 'ok', 'message': 'Successfully retrieved',
+                                'data'       : jsonable_encoder(customer_carts),
+                                "total_items": total_items})
 
           except Exception as e:
                raise e

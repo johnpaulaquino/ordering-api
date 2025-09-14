@@ -12,15 +12,7 @@ from app.src.routes.products_route import products_router
 
 app = FastAPI()
 
-app.add_exception_handler(
-        handler=create_exception_handler(), exc_class_or_status_code=AppException,
-)
 
-app.include_router(cart_router)
-app.include_router(products_router)
-app.include_router(auth_router)
-app.include_router(order_router)
-app.include_router(customers_router)
 
 app.add_middleware(
         CORSMiddleware,
@@ -29,6 +21,15 @@ app.add_middleware(
         allow_methods=["*"],
         allow_headers=["*"],
 )
+app.add_exception_handler(
+        handler=create_exception_handler(), exc_class_or_status_code=AppException,
+)
+app.include_router(cart_router)
+app.include_router(products_router)
+app.include_router(auth_router)
+app.include_router(order_router)
+app.include_router(customers_router)
+
 
 if __name__ == '__main__':
 
