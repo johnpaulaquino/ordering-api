@@ -5,6 +5,7 @@ from jose import ExpiredSignatureError, jwt
 from passlib.context import CryptContext
 
 from app.config.settings import Settings
+from app.src.exceptions.app_exceptions import JWTErrorException
 
 settings = Settings()
 
@@ -47,10 +48,11 @@ class AuthSecurity:
      @staticmethod
      def decode_jwt_token(token: str):
           try:
-               err_message = HTTPException(
+               err_message = JWTErrorException(
                        status_code=status.HTTP_401_UNAUTHORIZED,
-                       detail={'status': 'failed', 'message': 'Could not validate credentials'},
-                       headers={"WWW-Authenticate": 'Bearer'})
+                       message='Could not validate credentials',
+                       message_status='error',
+                       headers={'WWW-Authenticate':'Bearer'})
                if not token:
                     raise err_message
 
@@ -58,8 +60,11 @@ class AuthSecurity:
 
                if not payload:
                     raise err_message
-
                return payload
-
           except ExpiredSignatureError as e:
-               raise e
+               raise JWTErrorException(
+                       status_code=status.HTTP_401_UNAUTHORIZED,
+                       message='Token is expired, please back to login',
+                       message_status='error',
+                       headers={'WWW-Authenticate':'Bearer'}
+               )

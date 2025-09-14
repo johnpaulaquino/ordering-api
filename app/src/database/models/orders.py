@@ -15,8 +15,8 @@ class BaseOrders(SQLModel):
      shipping_address: str
      payment_method: str = PaymentMethod.COD.value
      subtotal: float
-     tax: float
-     discount: float
+     tax: int
+     discount: int
      notes: str
      quantity: int
 

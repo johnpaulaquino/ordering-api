@@ -1,5 +1,5 @@
 import requests
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt
 from starlette.responses import JSONResponse, RedirectResponse
@@ -7,11 +7,12 @@ from starlette.responses import JSONResponse, RedirectResponse
 from app.config.settings import Settings
 from app.src.database.models.customers import Customer
 from app.src.database.repositories.customer_repositories import CustomerRepository
-from app.src.dependencies.auth_dependency import AuthDependency
+from app.src.exceptions.app_exceptions import AppException, DatabaseDataNotFoundException, JWTErrorException
 from app.src.security.auth_security import AuthSecurity
 
 auth_router = APIRouter(
-        tags=['Authentication']
+        tags=['Authentication'],
+        prefix='/api/v1/auth',
 )
 
 settings = Settings()
@@ -26,7 +27,7 @@ async def login_via_google():
      google_auth_url = (
              "https://accounts.google.com/o/oauth2/v2/auth"
              f"?client_id={settings.GOOGLE_CLIENT_ID}"
-             f"&redirect_uri={settings.REDIRECT_URI}"
+             f"&redirect_uri=http://127.0.0.1:5500/test_home.html"
              "&response_type=code"
              "&scope=openid%20email%20profile"
      )
@@ -45,18 +46,28 @@ async def oauth_callback(code: str):
                   "code"         : code,
                   "client_id"    : settings.GOOGLE_CLIENT_ID,
                   "client_secret": settings.GOOGLE_CLIENT_SECRET,
-                  "redirect_uri" : settings.REDIRECT_URI,
+                  "redirect_uri" : 'http://127.0.0.1:5500/test_home.html',
                   "grant_type"   : "authorization_code",
           }
 
           token_response = requests.post(token_url, data=token_data).json()
           if "id_token" not in token_response:
-               return JSONResponse(
+               raise JWTErrorException(
                        status_code=status.HTTP_400_BAD_REQUEST,
-                       content={'status': 'failed', 'message': 'Failed to retrieve id token'})
+                       message_status='failed',
+                       message='Invalid request',
+                       headers={'WWW-Authenticate': 'Bearer'})
 
-          # decode token that came from google
-          user_info = jwt.get_unverified_claims(token_response["id_token"])
+          # decode token that came from Google
+          try:
+              user_info = jwt.get_unverified_claims(token_response["id_token"])
+          except Exception as e:
+               raise JWTErrorException(
+                       status_code=status.HTTP_400_BAD_REQUEST,
+                       message_status='failed',
+                       message='Invalid request',
+                       headers={'WWW-Authenticate': 'Bearer'})
+
 
           user_email = user_info['email']
           username = user_info['name']
@@ -65,19 +76,27 @@ async def oauth_callback(code: str):
 
           user_data = {'user_email': user_email}
 
-          data = await CustomerRepository.get_customer_by_username(user_email)
+          data = await CustomerRepository.get_customer_by_email(user_email)
 
           new_user = Customer(username=username, email=user_email)
 
           if not data:
+               #insert in database
                await CustomerRepository.create_user(new_user)
-               to_encode = {'user_email': new_user.email}
+
+               #prepare the user id to encode in access_token
+               to_encode = {'user_id': new_user.id}
+               # generate access token
+               generated_access_token = AuthSecurity.generate_access_token(to_encode)
+               #prepare the user id to encode in refresh_access_token
+               data_refresh_token = {'user_id': data.id, 'user_email': data.email}
+               generated_refresh_access_token = AuthSecurity.generate_refresh_access_token(data_refresh_token)
                return JSONResponse(
                        status_code=status.HTTP_201_CREATED,
                        content={'status'              : 'ok', 'message': 'Successfully created account',
                                 'action'              : 'signup',
-                                'access_token'        : "generated_access_token",
-                                'refresh_access_token': "data_refresh_token",
+                                'access_token'        : generated_access_token,
+                                'refresh_access_token': generated_refresh_access_token,
                                 'access_type'         : 'bearer'
                                 })
           # if not exist which is signup
@@ -94,23 +113,25 @@ async def oauth_callback(code: str):
                            'access_type'         : 'bearer'}, )
 
      except Exception as e:
-          raise e
+          raise AppException
 
 
-@auth_router.post('/auth/token')
+@auth_router.post('/token')
 async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends()):
      try:
           data = await CustomerRepository.get_customer_by_email(form_data.username)
           if not data:
-               raise HTTPException(
+               raise DatabaseDataNotFoundException(
                        status_code=status.HTTP_404_NOT_FOUND,
-                       detail={'status': 'failed', 'message': 'User not found'},
+                       message_status='fail',
+                       message='User not found',
                        headers={'WWW-Authenticate': 'Bearer'})
 
           if not AuthSecurity.verify_hashed_password(form_data.password, data.password):
-               raise HTTPException(
-                       status_code=status.HTTP_400_BAD_REQUEST,
-                       detail={'status': 'failed', 'message': 'Incorrect password'},
+               raise DatabaseDataNotFoundException(
+                       status_code=status.HTTP_404_NOT_FOUND,
+                       message_status='fail',
+                       message='Incorrect password',
                        headers={'WWW-Authenticate': 'Bearer'})
           to_encode = {'user_id': data.id, 'user_name': data.username}
           access_token = AuthSecurity.generate_access_token(to_encode)
@@ -118,13 +139,5 @@ async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends()):
                   status_code=status.HTTP_200_OK,
                   content={'access_token': access_token, 'access_type': 'Bearer'},
           )
-     except Exception as e:
-          raise e
-
-
-@auth_router.get('/tester')
-async def test(get_current_user = Depends(AuthDependency.get_current_user)):
-     try:
-          print(get_current_user.id)
      except Exception as e:
           raise e

@@ -31,9 +31,9 @@ class CartsServices:
                raise e
 
      @staticmethod
-     async def get_customer_carts(get_current_user=Depends(AuthDependency.get_current_user)):
+     async def get_customer_carts(current_user=Depends(AuthDependency.get_current_user)):
           try:
-               customer_id = get_current_user.id
+               customer_id = current_user.id
                data = await CustomerRepository.get_customer_by_id(customer_id)
 
                if not data:

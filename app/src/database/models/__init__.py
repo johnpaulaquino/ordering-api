@@ -12,4 +12,5 @@ __all__ = ["Base",
            "Products",
            "Customer",
            "Carts",
-           "Orders" ]
+           "Orders",
+           "CustomersAddress"]

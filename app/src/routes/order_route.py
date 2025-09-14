@@ -7,11 +7,13 @@ from app.src.dependencies.auth_dependency import AuthDependency
 from app.src.services.order_services import OrderServices
 
 order_router = APIRouter(
-        tags=['Orders']
+        tags=['Orders'],
+        prefix='/api/v1/order'
+
 )
 
 
-@order_router.post('/orders/batch')
+@order_router.post('/batch')
 async def place_orders_in_cart(orders: List[CreateOrders], current_user=Depends(AuthDependency.get_current_user)):
      try:
           return await OrderServices.insert_orders(orders, current_user)
@@ -19,7 +21,7 @@ async def place_orders_in_cart(orders: List[CreateOrders], current_user=Depends(
           raise e
 
 
-@order_router.post('/order')
+@order_router.post('/')
 async def buy_specific_product():
      try:
           pass
