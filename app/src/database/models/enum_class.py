@@ -12,3 +12,7 @@ class OrderStatus(Enum):
      SHIPPED = 'shipped'
      DELIVERED = 'delivered'
      CANCELLED = 'cancelled'
+
+class PaymentMethod(Enum):
+     COD='cod'
+     G_CASH='gcash'

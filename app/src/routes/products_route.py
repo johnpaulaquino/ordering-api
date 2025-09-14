@@ -11,9 +11,9 @@ products_router = APIRouter(
 )
 
 
-@products_router.put('/products')
-async def update_products_stocks(values: List[StocksSchema]):
-     try:
-          await ProductRepository.update_products_stocks(jsonable_encoder(values))
-     except Exception as e:
-          raise e
+# @products_router.put('/products')
+# async def update_products_stocks(values: List[StocksSchema]):
+#      try:
+#           await ProductRepository.update_products_stocks(jsonable_encoder(values))
+#      except Exception as e:
+#           raise e

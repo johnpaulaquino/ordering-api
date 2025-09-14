@@ -12,7 +12,10 @@ class ProductRepository:
      @staticmethod
      async def update_products_stocks(values: List[dict]):
           """
-          To update stocks products
+          To update stocks products after orders.
+
+
+          For now this case is solved via Trigger on sql.
           :param values:
           :return:
           """

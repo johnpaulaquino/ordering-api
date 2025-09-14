@@ -3,7 +3,7 @@ from datetime import date, datetime
 from sqlalchemy import Column, DateTime, func
 from sqlmodel import Field, SQLModel
 
-from app.src.database.models.enum_class import OrderStatus
+from app.src.database.models.enum_class import OrderStatus, PaymentMethod
 
 
 class BaseOrders(SQLModel):
@@ -13,7 +13,7 @@ class BaseOrders(SQLModel):
      customer_email: str
      customer_phone: str
      shipping_address: str
-     payment_method: str
+     payment_method: str = PaymentMethod.COD.value
      subtotal: float
      tax: float
      discount: float
