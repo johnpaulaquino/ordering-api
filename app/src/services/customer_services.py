@@ -1,10 +1,11 @@
-from fastapi import HTTPException, status
+from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from app.src.database.models import CustomersAddress
 from app.src.database.models.customers_address import CreateCustomerAddress
 from app.src.database.repositories.customer_repositories import CustomerRepository
+from app.src.exceptions.app_exceptions import DatabaseDataNotFoundException
 
 
 class CustomerServices:
@@ -15,9 +16,10 @@ class CustomerServices:
                customer_id = current_user.id
                customer_data = await CustomerRepository.get_customer_by_id(customer_id)
                if not customer_data:
-                    raise HTTPException(
+                    raise DatabaseDataNotFoundException(
                             status_code=status.HTTP_404_NOT_FOUND,
-                            detail={'status': 'failed', 'message': 'User not found'},
+                            message='User not found',
+                            message_status='fail',
                     )
                customers_address = CustomersAddress(
                        customer_id=customer_address.customer_id,
@@ -35,16 +37,20 @@ class CustomerServices:
 
      @staticmethod
      async def get_customer_address(current_user):
-          customer_id = current_user.id
-          data = await CustomerRepository.get_customer_address(customer_id)
+          try:
+               customer_id = current_user.id
+               data = await CustomerRepository.get_customer_address(customer_id)
 
-          if not data:
+               if not data:
+                    return JSONResponse(
+                            status_code=status.HTTP_200_OK,
+                            content={'status': 'ok', 'message': 'No data to retrieve',
+                                     'dat'   : []})
                return JSONResponse(
                        status_code=status.HTTP_200_OK,
-                       content={'status': 'ok', 'message': 'No data to retrieve',
-                                'dat'   : []})
-          return JSONResponse(
-                  status_code=status.HTTP_200_OK,
-                  content={'status': 'ok', 'message': 'Successfully retrieved',
-                           'dat'   : jsonable_encoder(data)},
-          )
+                       content={'status': 'ok', 'message': 'Successfully retrieved',
+                                'dat'   : jsonable_encoder(data)},
+               )
+          except Exception as e:
+               raise e
+

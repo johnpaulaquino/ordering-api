@@ -11,7 +11,6 @@ def create_exception_handler():
           detail = {'message': exc.message,
                     'status' : exc.message_status}
           if not exc.headers:
-
                return JSONResponse(
                   status_code=exc.status_code,
                   content= detail

@@ -2,8 +2,10 @@ from sqlalchemy import func
 from sqlalchemy.dialects.mysql import insert
 from sqlmodel import select
 
+from app.logs import Logger
 from app.src.database.engine_ import create_session
 from app.src.database.models import Carts, Products
+from app.src.exceptions.app_exceptions import AppException
 
 
 class CartsRepository:
@@ -20,7 +22,7 @@ class CartsRepository:
                     await db.commit()
                except Exception as e:
                     await db.rollback()
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def get_customer_carts(customer_id: int):
@@ -38,7 +40,7 @@ class CartsRepository:
                     data = result.mappings().all()
                     return data
                except Exception as e:
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def get_total_items_in_carts(customer_id: int):
@@ -49,7 +51,7 @@ class CartsRepository:
                     data = result.scalar()
                     return data
                except Exception as e:
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def get_customer_total_amount_of_carts(customer_id: int):
@@ -60,4 +62,5 @@ class CartsRepository:
                     data = result.scalar()
                     return data
                except Exception as e:
-                    raise e
+                    Logger.critical(msg=str(e.__cause__))
+                    raise AppException

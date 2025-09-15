@@ -1,9 +1,11 @@
 from sqlalchemy import and_
 from sqlmodel import select
 
+from app.logs import Logger
 from app.src.database.engine_ import create_session
 from app.src.database.models import CustomersAddress
 from app.src.database.models.customers import Customer
+from app.src.exceptions.app_exceptions import AppException
 
 
 class CustomerRepository:
@@ -17,7 +19,7 @@ class CustomerRepository:
                     data = result.scalar()
                     return data
                except Exception as e:
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def create_user(customer: Customer):
@@ -28,7 +30,7 @@ class CustomerRepository:
                     await db.refresh(customer)
                except Exception as e:
                     await db.rollback()
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def get_customer_by_email(email: str):
@@ -39,7 +41,7 @@ class CustomerRepository:
                     data = result.scalar()
                     return data
                except Exception as e:
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def insert_customers_address(customer_address: CustomersAddress):
@@ -50,7 +52,7 @@ class CustomerRepository:
                     await db.refresh(customer_address)
                except Exception as e:
                     await db.rollback()
-                    raise e
+                    raise AppException
 
      @staticmethod
      async def get_customer_address(customer_id: int):
@@ -61,4 +63,5 @@ class CustomerRepository:
                     data = result.scalar()
                     return data
                except Exception as e:
-                    raise e
+                    Logger.critical(msg=str(e.__cause__))
+                    raise AppException

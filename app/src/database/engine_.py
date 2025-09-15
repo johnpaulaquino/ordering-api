@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_asyn
 from typing_extensions import AsyncGenerator
 
 from app.config.settings import Settings
-
-
-
+from app.logs import Logger
+from app.src.exceptions.app_exceptions import AppException
 
 settings = Settings()
 

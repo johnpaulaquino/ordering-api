@@ -3,8 +3,10 @@ from typing import List
 from sqlalchemy import bindparam
 from sqlmodel import update
 
+from app.logs import Logger
 from app.src.database.engine_ import create_session
 from app.src.database.models import Products
+from app.src.exceptions.app_exceptions import AppException
 
 
 class ProductRepository:
@@ -25,11 +27,12 @@ class ProductRepository:
                             update(Products)
                             .where(Products.product_id == bindparam("p_id"))
                             .values(stocks=Products.stocks - bindparam("quantity"))
-                              .execution_options(synchronize_session=False))
+                            .execution_options(synchronize_session=False))
 
-                    await db.execute(stmt,values)
+                    await db.execute(stmt, values)
                     await db.commit()
 
                except Exception as e:
                     await db.rollback()
-                    raise e
+                    Logger.critical(msg=str(e.__cause__))
+                    raise AppException

@@ -5,6 +5,7 @@ from jose import jwt
 from starlette.responses import JSONResponse, RedirectResponse
 
 from app.config.settings import Settings
+from app.logs import Logger
 from app.src.database.models.customers import Customer
 from app.src.database.repositories.customer_repositories import CustomerRepository
 from app.src.exceptions.app_exceptions import AppException, DatabaseDataNotFoundException, JWTErrorException
@@ -54,7 +55,7 @@ async def oauth_callback(code: str):
           if "id_token" not in token_response:
                raise JWTErrorException(
                        status_code=status.HTTP_400_BAD_REQUEST,
-                       message_status='failed',
+                       message_status='fail',
                        message='Invalid request',
                        headers={'WWW-Authenticate': 'Bearer'})
 
@@ -62,11 +63,7 @@ async def oauth_callback(code: str):
           try:
               user_info = jwt.get_unverified_claims(token_response["id_token"])
           except Exception as e:
-               raise JWTErrorException(
-                       status_code=status.HTTP_400_BAD_REQUEST,
-                       message_status='failed',
-                       message='Invalid request',
-                       headers={'WWW-Authenticate': 'Bearer'})
+               raise e
 
 
           user_email = user_info['email']
@@ -91,6 +88,7 @@ async def oauth_callback(code: str):
                #prepare the user id to encode in refresh_access_token
                data_refresh_token = {'user_id': data.id, 'user_email': data.email}
                generated_refresh_access_token = AuthSecurity.generate_refresh_access_token(data_refresh_token)
+               Logger.info(msg=f'Created Account')
                return JSONResponse(
                        status_code=status.HTTP_201_CREATED,
                        content={'status'              : 'ok', 'message': 'Successfully created account',
@@ -113,7 +111,8 @@ async def oauth_callback(code: str):
                            'access_type'         : 'bearer'}, )
 
      except Exception as e:
-          raise AppException
+          Logger.info(msg=str(e.__cause__))
+          raise e
 
 
 @auth_router.post('/token')
@@ -135,9 +134,11 @@ async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends()):
                        headers={'WWW-Authenticate': 'Bearer'})
           to_encode = {'user_id': data.id, 'user_name': data.username}
           access_token = AuthSecurity.generate_access_token(to_encode)
+          Logger.info(msg=f'{data.id} logged in')
           return JSONResponse(
                   status_code=status.HTTP_200_OK,
                   content={'access_token': access_token, 'access_type': 'Bearer'},
           )
      except Exception as e:
+          Logger.info(msg=str(e.__cause__))
           raise e

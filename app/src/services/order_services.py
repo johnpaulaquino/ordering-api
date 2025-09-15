@@ -1,10 +1,13 @@
 from typing import List
 
+import asyncmy.errors
 from fastapi import status
 from starlette.responses import JSONResponse
 
+from app.logs import Logger
 from app.src.database.models.orders import CreateOrders, Orders
 from app.src.database.repositories.order_repositories import OrderRepository
+from app.src.exceptions.app_exceptions import AppException
 from app.src.utils.global_utils import GlobalUtils
 
 
@@ -44,5 +47,7 @@ class OrderServices:
                        status_code=status.HTTP_201_CREATED,
                        content={'status': 'ok', 'message': 'Success placed order(s)'},
                )
+
           except Exception as e:
                raise e
+

@@ -1,5 +1,7 @@
+from fastapi import status
+
 class AppException(Exception):
-     def __init__(self, status_code=500,
+     def __init__(self, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                   message="Internal Server Error, please contact the developer.",
                   message_status='error',
                   headers : dict = None):

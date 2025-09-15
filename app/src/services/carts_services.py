@@ -2,11 +2,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
+from app.logs import Logger
 from app.src.database.models import Carts
 from app.src.database.models.carts import CreateCarts
 from app.src.database.repositories.carts_repositories import CartsRepository
 from app.src.database.repositories.customer_repositories import CustomerRepository
 from app.src.dependencies.auth_dependency import AuthDependency
+from app.src.exceptions.app_exceptions import AppException, DatabaseDataNotFoundException
 
 
 class CartsServices:
@@ -29,7 +31,8 @@ class CartsServices:
                        content={'status': 'ok', 'message': 'Successfully Created!'},
                )
           except Exception as e:
-               raise e
+               Logger.get_logger().critical(e.__cause__)
+               raise AppException
 
      @staticmethod
      async def get_customer_carts(current_user=Depends(AuthDependency.get_current_user)):
@@ -38,9 +41,10 @@ class CartsServices:
                data = await CustomerRepository.get_customer_by_id(customer_id)
 
                if not data:
-                    raise HTTPException(
+                    raise DatabaseDataNotFoundException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail={'status': 'failed', 'message': 'No customer found'},
+                            message = 'No customer found',
+                            message_status='fail'
                     )
 
                customer_carts = await CartsRepository.get_customer_carts(data.id)
@@ -59,3 +63,4 @@ class CartsServices:
 
           except Exception as e:
                raise e
+

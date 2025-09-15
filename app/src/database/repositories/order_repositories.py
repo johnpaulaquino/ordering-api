@@ -1,11 +1,15 @@
+import re
+from pyexpat.errors import messages
 from typing import List
 
 from fastapi.encoders import jsonable_encoder
 
+from app.logs import Logger
 from app.src.database.engine_ import create_session
 from app.src.database.models.orders import CreateOrders, Orders
 from app.src.database.models.products import StocksSchema
 from app.src.database.repositories.products_repository import ProductRepository
+from app.src.exceptions.app_exceptions import AppException
 
 
 class OrderRepository:
@@ -33,5 +37,6 @@ class OrderRepository:
                except Exception as e:
                     #rollback if encountered error
                     await db.rollback()
-                    raise e
+                    Logger.critical(msg=str(e.__cause__))
+                    raise AppException
 
