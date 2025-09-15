@@ -31,7 +31,7 @@ class AppLogger:
                           },
                           "file"   : {  # JSON logs saved to file
                                   "class"    : "logging.FileHandler",
-                                  "level"    : "INFO",
+                                  "level"    : "WARNING",
                                   "formatter": "json",
                                   "filename" : f"{cls.__BASE_DIR}/app.json",
                                   "mode"     : "a",

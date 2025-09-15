@@ -24,7 +24,7 @@ class AuthSecurity:
      @classmethod
      def generate_access_token(cls, data_: dict, expiration: int = 0):
           to_encode = data_.copy()
-          expires = datetime.now(timezone.utc) + timedelta(days=1)
+          expires = datetime.now(timezone.utc) + timedelta(days=7)
           if expiration > 0:
                expires = datetime.now(timezone.utc) + timedelta(days=expiration)
 

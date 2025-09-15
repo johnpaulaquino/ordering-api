@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
+from app.logs import Logger
 from app.src.exceptions.app_exceptions import AppException
 from app.src.exceptions.exceptions_handler import create_exception_handler
 from app.src.routes.auth_route import auth_router
@@ -27,6 +28,7 @@ app.add_exception_handler(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
      validation_error = exc.errors()[0]
+     Logger.error(f'{validation_error['msg']} for {validation_error['loc'][1]}')
      return JSONResponse(
              status_code=422,
              content={"status" : "error",
