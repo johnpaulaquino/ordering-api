@@ -1,6 +1,8 @@
 import logging
 import os
 from logging.config import dictConfig
+
+
 # Apply logging config
 # Example logs
 
@@ -43,5 +45,5 @@ class AppLogger:
                   },
           }
           dictConfig(log_config)
-          logger = logging.getLogger("e-commerce-app",)
+          logger = logging.getLogger("e-commerce-app", )
           return logger
