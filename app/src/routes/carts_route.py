@@ -5,6 +5,7 @@ from fastapi.params import Depends
 from app.logs import Logger
 from app.src.database.models.carts import CreateCarts
 from app.src.dependencies.auth_dependency import AuthDependency
+from app.src.exceptions.app_exceptions import AppException
 from app.src.services.carts_services import CartsServices
 
 cart_router = APIRouter(
@@ -30,4 +31,6 @@ async def get_customer_carts(current_user=Depends(AuthDependency.get_current_use
           Logger.info('Successfully retrieve cart')
           return response
      except Exception as e:
+          if not isinstance(e, AppException):
+               Logger.critical(msg=f"{e}")
           raise e

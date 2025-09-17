@@ -47,7 +47,6 @@ class OrderServices:
                        status_code=status.HTTP_201_CREATED,
                        content={'status': 'ok', 'message': 'Success placed order(s)'},
                )
-
           except Exception as e:
                raise e
 

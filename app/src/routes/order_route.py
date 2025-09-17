@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from app.logs import Logger
 from app.src.database.models.orders import CreateOrders
 from app.src.dependencies.auth_dependency import AuthDependency
+from app.src.exceptions.app_exceptions import AppException
 from app.src.services.order_services import OrderServices
 
 order_router = APIRouter(
@@ -23,6 +24,8 @@ async def place_orders_in_cart(orders: List[CreateOrders], current_user=Depends(
           Logger.info('Successfully added orders')
           return response
      except Exception as e:
+          if not isinstance(e, AppException):
+               Logger.critical(msg=f"{e}")
           raise e
 
 #

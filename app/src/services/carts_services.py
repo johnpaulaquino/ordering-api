@@ -31,7 +31,7 @@ class CartsServices:
                        content={'status': 'ok', 'message': 'Successfully Created!'},
                )
           except Exception as e:
-               Logger.get_logger().critical(e.__cause__)
+               Logger.critical(e.__cause__)
                raise AppException
 
      @staticmethod

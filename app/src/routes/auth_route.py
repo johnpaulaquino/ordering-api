@@ -65,7 +65,6 @@ async def oauth_callback(code: str):
           except Exception as e:
                raise e
 
-
           user_email = user_info['email']
           username = user_info['name']
           given_name = user_info['given_name']
@@ -111,7 +110,6 @@ async def oauth_callback(code: str):
                            'access_type'         : 'bearer'}, )
 
      except Exception as e:
-          Logger.info(msg=str(e.__cause__))
           raise e
 
 
@@ -140,5 +138,6 @@ async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends()):
                   content={'access_token': access_token, 'access_type': 'Bearer'},
           )
      except Exception as e:
-          Logger.info(msg=str(e.__cause__))
+          if not isinstance(e, AppException):
+               Logger.critical(msg=f"{e}")
           raise e

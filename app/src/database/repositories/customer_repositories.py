@@ -2,7 +2,7 @@ from sqlalchemy import and_
 from sqlmodel import select
 
 from app.logs import Logger
-from app.src.database.engine_ import create_session
+from app.src.database.engine_ import create_session, safe_commit, safe_execute
 from app.src.database.models import CustomersAddress
 from app.src.database.models.customers import Customer
 from app.src.exceptions.app_exceptions import AppException
@@ -15,10 +15,11 @@ class CustomerRepository:
           async with create_session() as db:
                try:
                     stmt = select(Customer).where(and_(Customer.id == customer_id))
-                    result = await db.execute(stmt)
+                    result = await safe_execute(db, stmt)
                     data = result.scalar()
                     return data
                except Exception as e:
+                    Logger.critical(msg=f"{e}")
                     raise AppException
 
      @staticmethod
@@ -30,6 +31,7 @@ class CustomerRepository:
                     await db.refresh(customer)
                except Exception as e:
                     await db.rollback()
+                    Logger.critical(msg=f"{e}")
                     raise AppException
 
      @staticmethod
@@ -37,10 +39,11 @@ class CustomerRepository:
           async with create_session() as db:
                try:
                     stmt = select(Customer).where(and_(Customer.email == email))
-                    result = await db.execute(stmt)
+                    result = await safe_execute(db, stmt)
                     data = result.scalar()
                     return data
                except Exception as e:
+                    Logger.critical(msg=f"{e}")
                     raise AppException
 
      @staticmethod
@@ -48,10 +51,11 @@ class CustomerRepository:
           async with create_session() as db:
                try:
                     db.add(customer_address)
-                    await db.commit()
+                    await safe_commit(db)
                     await db.refresh(customer_address)
                except Exception as e:
                     await db.rollback()
+                    Logger.critical(msg=f"{e}")
                     raise AppException
 
      @staticmethod
@@ -59,9 +63,9 @@ class CustomerRepository:
           async with create_session() as db:
                try:
                     stmt = select(CustomersAddress).where(CustomersAddress.customer_id == customer_id)
-                    result = await db.execute(stmt)
+                    result = await safe_execute(db, stmt)
                     data = result.scalar()
                     return data
                except Exception as e:
-                    Logger.critical(msg=str(e.__cause__))
+                    Logger.critical(msg=f"{e}")
                     raise AppException

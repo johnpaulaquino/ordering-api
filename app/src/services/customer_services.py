@@ -22,7 +22,7 @@ class CustomerServices:
                             message_status='fail',
                     )
                customers_address = CustomersAddress(
-                       customer_id=customer_address.customer_id,
+                       customer_id=customer_id,
                        full_address=customer_address.full_address,
                        full_name=customer_address.full_name,
                        postal_code=customer_address.postal_code,

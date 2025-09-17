@@ -12,7 +12,7 @@ from app.src.exceptions.app_exceptions import AppException
 class ProductRepository:
 
      @staticmethod
-     async def update_products_stocks(values: List[dict]):
+     async def update_products_stocks_if_order_success(values: List[dict]):
           """
           To update stocks products after orders.
 
@@ -34,5 +34,5 @@ class ProductRepository:
 
                except Exception as e:
                     await db.rollback()
-                    Logger.critical(msg=str(e.__cause__))
-                    raise AppException
+                    raise e
+
